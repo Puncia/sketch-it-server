@@ -17,19 +17,6 @@ namespace sketch_it_server
 
         public ManualResetEvent allDone = new ManualResetEvent(false);
 
-        List<ClientSocket> Clients;
-        
-        public struct Login
-        {
-            string Username;
-            string Password;
-        }
-
-        public ServerSocket()
-        {
-            Clients = new List<ClientSocket>();
-        }
-
         public void StartListening()
         {
             byte[] bytes = new Byte[1024];
@@ -72,9 +59,7 @@ namespace sketch_it_server
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
 
-            Clients.Add(new ClientSocket(handler));
-
-            onConnection?.Invoke(Clients.Last());            
+            onConnection?.Invoke(new ClientSocket(handler));            
         }
     }
 }

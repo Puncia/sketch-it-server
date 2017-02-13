@@ -5,8 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.Net.Sockets;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace sketch_it_server
 {    
@@ -28,11 +26,6 @@ namespace sketch_it_server
 
         Socket s;
 
-        private enum CommandID
-        {
-            Authentication_Login = 1
-        }
-        
         public ClientSocket(Socket s)
         {
             onMessageReceive += MessageReceived;
@@ -43,6 +36,11 @@ namespace sketch_it_server
             sObject.msgBuffer = new StringBuilder();
             
             s.BeginReceive(sObject.tmpBuffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), sObject);
+        }
+
+        public ClientSocket(ClientSocket s)
+        {
+            this.s = s.s;
         }
 
         public void ReceiveCallback(IAsyncResult ar)
@@ -132,34 +130,7 @@ namespace sketch_it_server
 
         public void MessageReceived(string msg)
         {
-            Console.WriteLine(msg);
-
-            switch(getCommandID(msg))
-            {
-                case CommandID.Authentication_Login:
-                    GenericMessage json_msg = new GenericMessage();
-
-                    json_msg.command = "Authentication/Login";
-                    json_msg.parameters = new object();
-                    json_msg.parameters = new Response(true);
-
-                    string rsp = JsonConvert.SerializeObject(json_msg);
-
-                    Send(rsp);
-                    break;
-                
-            }
-        }
-        
-
-        private CommandID getCommandID(string msg)
-        {
-            JObject o = JObject.Parse(msg);
-
-            if ((string)o["command"] == "Authentication/Login")
-                return CommandID.Authentication_Login;
-
-            return 0;
+           
         }
     }
 }

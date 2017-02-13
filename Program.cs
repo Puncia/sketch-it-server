@@ -12,10 +12,7 @@ namespace sketch_it_server
     {
         public static int Main(string[] args)
         {
-            ServerSocket socket = new ServerSocket();
-
-            socket.onConnection += Socket_onConnection;
-            socket.StartListening();
+            Server.Run();
 
             return 0;
         }
@@ -26,4 +23,3 @@ namespace sketch_it_server
         }
     }
 }
-

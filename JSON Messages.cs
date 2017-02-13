@@ -25,5 +25,8 @@ namespace sketch_it_server
 
         [JsonProperty]
         public bool response { get; set; }
+
+        [JsonProperty]
+        public string error { get; set; }
     }
 }
