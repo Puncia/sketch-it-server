@@ -17,15 +17,27 @@ namespace sketch_it_server
 
         public ManualResetEvent allDone = new ManualResetEvent(false);
 
-        public ServerSocket() { }
+        List<ClientSocket> Clients;
+        
+        public struct Login
+        {
+            string Username;
+            string Password;
+        }
+
+        public ServerSocket()
+        {
+            Clients = new List<ClientSocket>();
+        }
 
         public void StartListening()
         {
             byte[] bytes = new Byte[1024];
 
             IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+            //IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 56489);
 
             Socket listener = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
@@ -36,7 +48,7 @@ namespace sketch_it_server
                 listener.Listen(100);
 
                 while (true)
-                {
+                { 
                     allDone.Reset();
                     
                     listener.BeginAccept(
@@ -60,8 +72,9 @@ namespace sketch_it_server
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
 
-            onConnection?.Invoke(new ClientSocket(handler));
-            
+            Clients.Add(new ClientSocket(handler));
+
+            onConnection?.Invoke(Clients.Last());            
         }
     }
 }
