@@ -22,8 +22,8 @@ namespace sketch_it_server
             byte[] bytes = new Byte[1024];
 
             IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
-            //IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+            IPAddress ipAddress = ipHostInfo.AddressList[1];
+            //IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 56489);
 
             Socket listener = new Socket(AddressFamily.InterNetwork,

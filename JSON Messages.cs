@@ -29,4 +29,23 @@ namespace sketch_it_server
         [JsonProperty]
         public string error { get; set; }
     }
+    
+    class LobbyMessage
+    {
+        public LobbyMessage(string content, string user, bool system)
+        {
+            this.content = content;
+            this.user = user;
+            this.system = system;
+        }
+
+        [JsonProperty]
+        public string content;
+
+        [JsonProperty]
+        public string user;
+
+        [JsonProperty]
+        public bool system;
+    }
 }

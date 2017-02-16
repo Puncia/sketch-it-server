@@ -26,6 +26,8 @@ namespace sketch_it_server
 
         Socket s;
 
+        internal string Username;
+
         public ClientSocket(Socket s)
         {
             onMessageReceive += MessageReceived;
@@ -41,65 +43,73 @@ namespace sketch_it_server
         public ClientSocket(ClientSocket s)
         {
             this.s = s.s;
+            this.Username = s.Username;
         }
 
         public void ReceiveCallback(IAsyncResult ar)
         {
-            string content = string.Empty;
-            StateObject state = (StateObject)ar.AsyncState;
-
-            int bytesRead = s.EndReceive(ar);
-
-            if(bytesRead > 0)
+            try
             {
-                state.msgBuffer.Append(Encoding.ASCII.GetString(
-                    state.tmpBuffer, 0, bytesRead));
+                string content = string.Empty;
+                StateObject state = (StateObject)ar.AsyncState;
 
-                content = state.msgBuffer.ToString();
+                int bytesRead = s.EndReceive(ar);
 
-                int occ = 0;
-                int i = 0;
-
-                for ( ; i < content.Length; ++i)
+                if (bytesRead > 0)
                 {
-                    if (content[i] == EOF)
+                    state.msgBuffer.Append(Encoding.ASCII.GetString(
+                        state.tmpBuffer, 0, bytesRead));
+
+                    content = state.msgBuffer.ToString();
+
+                    int occ = 0;
+                    int i = 0;
+
+                    for (; i < content.Length; ++i)
                     {
-                        if (occ == 0)
+                        if (content[i] == EOF)
                         {
-                            content = content.Remove(i, 1);
-                            i--;
-                        }
+                            if (occ == 0)
+                            {
+                                content = content.Remove(i, 1);
+                                i--;
+                            }
 
-                        occ++;
+                            occ++;
+                        }
+                        else
+                        {
+                            if (occ == 1)
+                            {
+                                //Message received
+                                onMessageReceive?.Invoke(content.Substring(0, i));
+
+                                content = content.Substring(i, content.Length - i);
+                                i = 0;
+                            }
+
+                            occ = 0;
+                        }
                     }
-                    else
+
+                    if (occ == 1)
                     {
-                        if (occ == 1)
-                        {
-                            //Message received
-                            onMessageReceive?.Invoke(content.Substring(0, i));
+                        //Message received
+                        onMessageReceive?.Invoke(content.Substring(0, i));
 
-                            content = content.Substring(i, content.Length - i);
-                            i = 0;
-                        }
-
-                        occ = 0;
+                        content = content.Substring(i, content.Length - i);
+                        i = 0;
                     }
+
+                    state.msgBuffer.Clear();
+                    state.msgBuffer.Append(content);
+
+                    s.BeginReceive(state.tmpBuffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
-
-                if (occ == 1)
-                {
-                    //Message received
-                    onMessageReceive?.Invoke(content.Substring(0, i));
-
-                    content = content.Substring(i, content.Length - i);
-                    i = 0;
-                }
-
-                state.msgBuffer.Clear();
-                state.msgBuffer.Append(content);
-
-                s.BeginReceive(state.tmpBuffer, 0, StateObject.bufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+            }
+            catch (SocketException e)
+            {
+                Console.WriteLine("Client closed connection.");
             }
         }
 
